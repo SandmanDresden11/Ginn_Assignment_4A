@@ -1,0 +1,32 @@
+field,value,note
+document_type,Internal Deal Desk Pricing & Limits Guidance (fictional; Salesforce-internal only; not shared with customer),
+account_id,SFDC-MI-00291,Matches crm_account_overview.csv
+prepared_by,M. Reyes - Deal Desk Manager (fictional),
+prepared_date,2026-05-20,
+requested_by,J. Alvarez - Account Executive (fictional),
+context_note,Prepared in response to AE's 2026-05-14 email committing to check seat true-up and AI/Einstein bundling asks with deal desk,See email_thread_excerpt.md
+salesforce_fiscal_year_note,Salesforce FY2027 runs 2026-02-01 to 2027-01-31; FY2027 Q4 runs 2026-11-01 to 2027-01-31,
+pricing_term_basis,All price positions below assume a signed 3-year (36-month) term,
+opening_price_usd_annual,1950000,Opening position
+target_price_usd_annual,1840000,Target position
+acceptable_price_usd_annual,1750000,Acceptable position
+minimum_price_usd_annual,1650000,Minimum/floor position
+minimum_price_escalation_note,"Any offer below $1,650,000/year requires CRO approval under the Strategic account exception process",
+single_year_term_price_adjustment_pct,4,Add this percentage to each price tier above if Marriott signs a 1-year term instead of 3-year
+five_year_term_discount_pct,2,Additional discount available off target/acceptable tiers if Marriott agrees to a 5-year term
+current_seat_count,4200,Matches current_contract_terms.csv
+minimum_seat_floor,3800,Lowest seat count Deal Desk can approve without escalation
+seat_floor_escalation_note,"A true-up/true-down model with a seat floor below 3,800 (including Marriott's stated 3,600 target) requires VP of Sales approval",
+ai_einstein_list_price_usd_per_seat_monthly,15,
+ai_einstein_bundling_concession_limit_seats,2600,"AE may bundle Einstein/AI at no incremental charge for up to 2,600 Service Cloud (contact-center) seats if a 3-year term is signed; bundling beyond this or org-wide requires VP approval"
+sandbox_incremental_internal_cost_usd_annual,8000,Internal estimated cost per additional full sandbox
+sandbox_concession_limit_units,2,"AE may approve up to 2 additional full sandboxes at no charge without escalation, contingent on a minimum 2-year term"
+max_discount_pct_without_escalation,12,
+discount_escalation_tier_1_pct,18,Discounts between 12% and 18% off list require VP of Sales approval
+discount_escalation_tier_2_note,Beyond 18% off list,Requires CRO approval
+preferred_term_length_months,36,
+estimated_customer_budget_ceiling_usd_annual,1700000,Internal Deal Desk estimate based on account tier and Hospitality-vertical benchmarks; NOT confirmed by customer
+budget_estimate_confidence,Low,"Estimate only, not derived from any customer-confirmed figure"
+competitive_context_note,Hospitality-vertical Service Cloud renewals have seen 2 competitive displacements fiscal-year-to-date; Deal Desk recommends prioritizing contact-center retention terms over maximizing price on this renewal,
+deadline_flexibility_note,Customer's requested 2026-12-15 close date falls within Salesforce FY2027 Q4 (2026-11-01 to 2027-01-31) and creates no internal fiscal conflict,
+walkaway_guidance,"Do not offer full-org AI/Einstein bundling or a seat floor below 3,800 without VP sign-off; do not cross the $1,650,000/year floor without CRO approval",

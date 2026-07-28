@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Negotiation Prep — Salesforce × Marriott (fictional)</title>
+<style>
+  :root {
+    --accent: #0176D3;
+    --accent-dark: #014486;
+    --accent-bg: #EAF4FE;
+    --bg-page: #F3F4F6;
+    --bg-card: #FFFFFF;
+    --text-primary: #1B1B1E;
+    --text-secondary: #55565A;
+    --text-muted: #8A8B8F;
+    --border: #E2E3E6;
+    --border-strong: #C9CBD1;
+    --green-bg: #E7F6EC; --green-text: #1B7A3D; --green-border: #B8E5C6;
+    --amber-bg: #FFF6E5; --amber-text: #8A5A00; --amber-border: #F5D98A;
+    --red-bg: #FDECEC; --red-text: #A3231F; --red-border: #F3B9B7;
+    --gray-bg: #F0F1F3; --gray-text: #55565A; --gray-border: #DCDDE1;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(20,20,30,0.04), 0 1px 8px rgba(20,20,30,0.04);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 28px 20px 80px; }
+  header.top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 6px; flex-wrap: wrap; }
+  header.top h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
+  header.top p.sub { margin: 0; color: var(--text-secondary); font-size: 14px; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--gray-bg); color: var(--gray-text); border: 1px solid var(--gray-border); white-space: nowrap; }
+  .disclaimer {
+    background: var(--amber-bg); border: 1px solid var(--amber-border); color: var(--amber-text);
+    border-radius: var(--radius); padding: 12px 16px; font-size: 13px; margin: 16px 0 24px;
+  }
+  .disclaimer strong { display: block; margin-bottom: 2px; font-size: 13px; }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; margin-bottom: 18px; box-shadow: var(--shadow);
+  }
+  .controls-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; }
+  @media (max-width: 620px) { .controls-grid { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .field label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+  .field input, .field select, .field textarea {
+    font: inherit; font-size: 14px; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--border-strong);
+    background: #fff; color: var(--text-primary); width: 100%;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+  .field textarea { resize: vertical; min-height: 44px; }
+  .field-full { grid-column: 1 / -1; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  button {
+    font: inherit; font-size: 14px; font-weight: 600; padding: 10px 18px; border-radius: 8px;
+    border: 1px solid transparent; cursor: pointer; transition: transform 0.05s ease;
+  }
+  button:active { transform: scale(0.98); }
+  button.primary { background: var(--accent); color: #fff; }
+  button.primary:hover { background: var(--accent-dark); }
+  button.secondary { background: #fff; color: var(--text-primary); border-color: var(--border-strong); }
+  button.secondary:hover { background: var(--gray-bg); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  #output { margin-top: 24px; }
+  #output:empty { display: none; }
+  .meta-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 4px; font-size: 13px; color: var(--text-secondary); }
+  .section-title { font-size: 15px; font-weight: 700; margin: 0 0 10px; color: var(--text-primary); }
+  .section-title .count { font-weight: 500; color: var(--text-muted); font-size: 12px; margin-left: 6px; }
+  .item-row { padding: 10px 0; border-top: 1px solid var(--border); font-size: 14px; }
+  .item-row:first-child { border-top: none; padding-top: 0; }
+  .item-row .src { color: var(--text-muted); font-size: 12px; display: block; margin-top: 3px; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 6px; vertical-align: 1px; text-transform: uppercase; letter-spacing: 0.02em; }
+  .badge-high, .badge-confirmed { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-border); }
+  .badge-medium, .badge-resolved { background: var(--amber-bg); color: var(--amber-text); border: 1px solid var(--amber-border); }
+  .badge-low { background: var(--gray-bg); color: var(--gray-text); border: 1px solid var(--gray-border); }
+  .badge-inferred { background: var(--accent-bg); color: var(--accent-dark); border: 1px solid #BFE0FB; }
+  .evidence { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
+  .subhead { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 14px 0 6px; }
+  .subhead:first-child { margin-top: 0; }
+  .conflict-box { background: var(--red-bg); border: 1px solid var(--red-border); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .conflict-box .topic { font-weight: 700; color: var(--red-text); font-size: 13px; margin-bottom: 6px; }
+  .conflict-box ul { margin: 0 0 6px; padding-left: 18px; font-size: 13px; }
+  .conflict-box .status { font-size: 12px; color: var(--text-secondary); }
+  .conflict-pointer { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  pre.json-block { background: #F7F8FA; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 12px; overflow-x: auto; margin: 4px 0 10px; }
+  .empty-note { color: var(--text-muted); font-size: 13px; font-style: italic; }
+  .source-list { font-size: 13px; color: var(--text-secondary); }
+  .source-list li { margin-bottom: 6px; }
+  .source-list code { background: var(--gray-bg); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  footer.note { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 28px; }
+  .stakeholder-card { border-left: 3px solid var(--accent); padding-left: 12px; margin-bottom: 10px; }
+  .stakeholder-card:last-child { margin-bottom: 0; }
+  .stakeholder-name { font-weight: 700; font-size: 14px; }
+  .stakeholder-role { color: var(--text-secondary); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Negotiation prep briefing generator</h1>
+      <p class="sub">Salesforce × Marriott renewal — fictional classroom exercise</p>
+    </div>
+    <span class="pill">Stage 2 · interaction-heavy tool</span>
+  </header>
+
+  <div class="disclaimer" id="disclaimer-banner"></div>
+
+  <div class="card">
+    <div class="controls-grid">
+      <div class="field field-full">
+        <label for="meetingWith">Who are you meeting with today?</label>
+        <input id="meetingWith" list="stakeholderList" placeholder="e.g. Rachel Kim" autocomplete="off">
+        <datalist id="stakeholderList"></datalist>
+      </div>
+      <div class="field">
+        <label for="focus">Focus area</label>
+        <select id="focus"></select>
+      </div>
+      <div class="field">
+        <label for="notes">Session notes (optional)</label>
+        <input id="notes" placeholder="e.g. follow-up after May emails">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="primary" id="generateBtn">Generate briefing</button>
+      <button class="secondary" id="downloadBtn" disabled>Download as Markdown</button>
+      <button class="secondary" id="copyBtn" disabled>Copy to clipboard</button>
+    </div>
+  </div>
+
+  <div id="output"></div>
+
+  <footer class="note">Fictional classroom exercise. Not real Salesforce or Marriott information. This tool does not recommend which offer to make or accept.</footer>
+</div>
+
+<script id="packet-data" type="application/json">
+{
+  "classroom_use_disclaimer": {
+    "statement": "This dataset is a fictional classroom exercise. Salesforce and Marriott International are real companies referenced only as a realistic setting for a negotiation-preparation training assignment. All prices, contract terms, metrics, stakeholders, communications, alternatives, and negotiation positions in the six source files (crm_account_overview.csv, current_contract_terms.csv, discovery_call_notes.md, usage_outcomes_report.md, email_thread_excerpt.md, salesforce_marriott_internal_pricing_limits.csv) are invented for this assignment. Nothing in this file should be treated as real confidential, financial, or business information belonging to either company.",
+    "source": "assignment instructions (not derived from any of the six source files)",
+    "note": "salesforce_marriott_internal_pricing_limits.csv was added after the initial five-file consolidation, at the account executive's explicit request, to fill gaps in the sign-off checklist (opening/target/acceptable/minimum pricing, seat floor, concession limits, estimated customer budget). It is authored fictional content, not extracted from an uploaded document, and is flagged as such wherever it is used below."
+  },
+
+  "account_overview": {
+    "account_name": { "value": "Marriott International", "source": "crm_account_overview.csv" },
+    "industry": { "value": "Hospitality", "source": "crm_account_overview.csv" },
+    "salesforce_account_owner": {
+      "value": "Jorge Alvarez",
+      "title": "Salesforce Account Executive (AE)",
+      "note": "CRM lists 'J. Alvarez'; first name 'Jorge' confirmed via his email signature.",
+      "source": ["crm_account_overview.csv", "email_thread_excerpt.md"]
+    },
+    "account_id": { "value": "SFDC-MI-00291", "source": "crm_account_overview.csv" },
+    "account_tier": { "value": "Strategic", "source": "crm_account_overview.csv" },
+    "product_line": { "value": "Sales Cloud + Service Cloud Enterprise Edition", "source": "crm_account_overview.csv" },
+    "last_qbr_date": { "value": "2026-04-15", "source": "crm_account_overview.csv", "note": "Normalized from 04/15/2026." },
+    "official_renewal_target_date": {
+      "value": "2027-01-31",
+      "source": "crm_account_overview.csv",
+      "note": "Matches current contract end date. See conflicts log (C-3): email_thread_excerpt.md states an internal deadline of 2026-12-15."
+    }
+  },
+
+  "stakeholders": {
+    "confirmed": [
+      {
+        "name": "Rachel Kim",
+        "organization": "Marriott",
+        "title": {
+          "status": "conflicting",
+          "values": [
+            { "value": "VP of Procurement", "source": "crm_account_overview.csv (field: primary_contact_title)" },
+            { "value": "Director of Procurement, reports up to the VP of Procurement", "source": "discovery_call_notes.md (Rachel's own verbal correction on the call)" }
+          ],
+          "note": "See conflicts log (C-1). Not silently resolved; both values retained."
+        },
+        "role_in_negotiation": "Primary contact; leads pricing/terms conversation; will escalate final approval to Marriott's CFO's office.",
+        "source": ["crm_account_overview.csv", "discovery_call_notes.md", "email_thread_excerpt.md"]
+      },
+      {
+        "name": "Devon Osei",
+        "organization": "Marriott",
+        "title": "Director of Sales Operations",
+        "role_in_negotiation": "Secondary contact; represents Sales Ops and contact center perspective; raised Service Cloud wins and AI/Einstein bundling question.",
+        "source": ["crm_account_overview.csv", "discovery_call_notes.md"]
+      },
+      {
+        "name": "Jorge Alvarez",
+        "organization": "Salesforce",
+        "title": "Account Executive",
+        "role_in_negotiation": "Account owner; primary Salesforce negotiator; routes seat/AI pricing questions to deal desk.",
+        "source": ["crm_account_overview.csv", "discovery_call_notes.md", "email_thread_excerpt.md"]
+      },
+      {
+        "name": null,
+        "organization": "Marriott",
+        "title": "CFO's office (unnamed individual)",
+        "role_in_negotiation": "Final sign-off authority for the renewal; no specific person named in any source.",
+        "source": "discovery_call_notes.md"
+      }
+    ],
+    "inferred": [
+      {
+        "statement": "Rachel Kim is an influencer/champion who can shape terms but is not the final decision-maker.",
+        "confidence": "high",
+        "evidence": "She stated final sign-off is 'above my pay grade, it'll go to our CFO's office' (discovery_call_notes.md).",
+        "source": "discovery_call_notes.md"
+      }
+    ]
+  },
+
+  "current_contract": {
+    "contract_id": { "value": "MSA-2024-0187", "source": "current_contract_terms.csv" },
+    "effective_date": { "value": "2024-02-01", "source": "current_contract_terms.csv", "note": "Matches crm_account_overview.csv current_contract_start_date (02/01/2024)." },
+    "term_length_months": { "value": 36, "source": "current_contract_terms.csv" },
+    "end_date": { "value": "2027-01-31", "source": "crm_account_overview.csv", "note": "Consistent with a 36-month term starting 2024-02-01. See conflicts log (C-3)." },
+    "annual_list_price_usd": { "value": 1920000, "source": "current_contract_terms.csv" },
+    "annual_negotiated_price_usd": { "value": 1780000, "source": "current_contract_terms.csv", "note": "Internally consistent with list price minus discount (1,920,000 x (1-0.073) ≈ 1,779,840). See conflicts log (C-2) re: CRM's differing 'current_annual_contract_value_usd'." },
+    "discount_pct_applied": { "value": 7.3, "source": "current_contract_terms.csv" },
+    "current_annual_contract_value_usd_per_crm": { "value": 1850000, "source": "crm_account_overview.csv", "note": "Conflicts with current_contract_terms.csv annual_negotiated_price_usd. See conflicts log (C-2)." },
+    "licensed_seats": { "value": 4200, "source": "current_contract_terms.csv", "note": "Matches crm_account_overview.csv current_licensed_users (4200)." },
+    "support_tier": { "value": "Premier Success Plan", "source": "current_contract_terms.csv" },
+    "payment_terms": { "value": "Net 45", "source": "current_contract_terms.csv" },
+    "auto_renewal_clause": { "value": "Yes - 60-day opt-out notice required", "source": "current_contract_terms.csv" },
+    "included_sandboxes": { "value": 3, "unit": "full sandboxes", "source": "current_contract_terms.csv" },
+    "data_storage_allotment_gb": { "value": 500, "source": "current_contract_terms.csv" }
+  },
+
+  "requested_terms": {
+    "confirmed": [
+      {
+        "request": "Move from a flat 4,200-seat commitment to a usage-based/true-up (and true-down) seat model.",
+        "detail": "Marriott's internal number for seats it would 'confidently commit to today' is closer to 3,600.",
+        "confidently_committable_seats": 3600,
+        "source": ["email_thread_excerpt.md", "discovery_call_notes.md (raised as an open idea before being formalized in the email)"]
+      },
+      {
+        "request": "Include AI/Einstein features in the base price, at minimum for the contact center team, rather than as a billed add-on.",
+        "source": ["email_thread_excerpt.md", "discovery_call_notes.md (raised as an open question)"]
+      },
+      {
+        "request": "Move to a 3-year term if the effective annual price drops meaningfully.",
+        "target_annual_price_usd_low": 1500000,
+        "target_annual_price_usd_high": 1600000,
+        "source": "email_thread_excerpt.md"
+      },
+      {
+        "request": "Two additional full sandboxes at no incremental cost.",
+        "source": ["email_thread_excerpt.md", "discovery_call_notes.md (generic mention of wanting more sandboxes, no number given)"]
+      },
+      {
+        "request": "Finalize the renewal by December 15, 2026 due to a corporate budget cycle change communicated by Marriott Legal.",
+        "source": "email_thread_excerpt.md",
+        "note": "Conflicts with the contract's original end date / CRM renewal target of 2027-01-31. See conflicts log (C-3)."
+      }
+    ],
+    "inferred": []
+  },
+
+  "usage_and_outcomes": {
+    "confirmed": {
+      "reporting_period": { "value": "2026-01-01 to 2026-03-31", "label": "Q1 2026", "source": "usage_outcomes_report.md" },
+      "active_weekly_users_sales_cloud": { "value": 3180, "source": "usage_outcomes_report.md" },
+      "active_weekly_users_service_cloud": { "value": 2540, "source": "usage_outcomes_report.md" },
+      "total_licensed_seats": { "value": 4200, "source": "usage_outcomes_report.md" },
+      "overall_license_utilization_pct": { "value": 76, "source": "usage_outcomes_report.md", "note": "Methodology not specified; does not map cleanly onto the per-product weekly active user counts. See unresolved_questions." },
+      "regional_utilization_pct": {
+        "north_america": { "value": 91, "source": "usage_outcomes_report.md" },
+        "emea": { "value": 58, "source": "usage_outcomes_report.md" },
+        "apac": { "value": 49, "source": "usage_outcomes_report.md" }
+      },
+      "avg_case_resolution_time_change_pct_yoy": { "value": -22, "scope": "Service Cloud, contact center", "source": "usage_outcomes_report.md" },
+      "sales_cycle_length_change_pct_yoy": { "value": -9, "scope": "Sales Cloud, group bookings team", "source": "usage_outcomes_report.md" },
+      "platform_support_tickets_q1_2026": { "value": 340, "source": "usage_outcomes_report.md" },
+      "support_tickets_resolved_within_sla_pct": { "value": 91, "source": "usage_outcomes_report.md" }
+    },
+    "notes": [
+      {
+        "statement": "APAC utilization has been consistently low for three straight quarters and is flagged internally as an at-risk pocket of the account.",
+        "source": "usage_outcomes_report.md"
+      },
+      {
+        "statement": "Root cause of the APAC utilization gap is not confirmed. Theories (incomplete regional rollout, language/localization gap) are explicitly labeled unvalidated with the customer in the source document itself.",
+        "source": "usage_outcomes_report.md"
+      },
+      {
+        "statement": "The North America contact center team has become an internal reference/advocate and has informally agreed to participate in a case study if asked.",
+        "source": "usage_outcomes_report.md"
+      }
+    ]
+  },
+
+  "salesforce_objectives": {
+    "confirmed": [
+      {
+        "statement": "The Salesforce AE stated he needs to run the seat-reduction and AI-bundling requests by the deal desk before confirming anything on pricing.",
+        "source": "email_thread_excerpt.md"
+      },
+      {
+        "statement": "The Salesforce AE wants to gauge how serious the competitive evaluation of the contact center piece is, in order to prioritize Salesforce's response.",
+        "source": "email_thread_excerpt.md"
+      },
+      {
+        "statement": "Deal Desk has pre-approved a 3-year term structure with defined opening/target/acceptable/minimum annual price positions ($1,950,000 / $1,840,000 / $1,750,000 / $1,650,000) and will not approve pricing below $1,650,000/year without CRO sign-off.",
+        "source": "salesforce_marriott_internal_pricing_limits.csv"
+      },
+      {
+        "statement": "Deal Desk recommends prioritizing contact-center retention terms over maximizing price on this renewal, citing 2 competitive displacements fiscal-year-to-date in Hospitality-vertical Service Cloud renewals.",
+        "source": "salesforce_marriott_internal_pricing_limits.csv"
+      }
+    ],
+    "inferred": [
+      {
+        "statement": "Retain and protect the existing ~$1.78-1.85M ACV Strategic-tier account.",
+        "confidence": "high",
+        "evidence": "Account is tagged 'Strategic' tier with a Premier Success Plan, and the AE is actively managing renewal prep many months ahead of contract expiration.",
+        "source": ["crm_account_overview.csv", "current_contract_terms.csv"]
+      },
+      {
+        "statement": "Convert the account to a 3-year term to lock in revenue predictability.",
+        "confidence": "medium",
+        "evidence": "The AE engaged constructively on the multi-year structure in his email reply rather than declining; Rachel independently noted multi-year deals are easier to get approved 'if the price is right.'",
+        "source": ["email_thread_excerpt.md", "discovery_call_notes.md"]
+      },
+      {
+        "statement": "Grow/expand AI-Einstein adoption as a monetizable upsell rather than giving it away for free.",
+        "confidence": "medium",
+        "evidence": "The AE deferred the AI-bundling question to deal desk instead of rejecting it outright, suggesting it is being treated as a negotiable commercial lever rather than a simple no.",
+        "source": "email_thread_excerpt.md"
+      },
+      {
+        "statement": "Defend against competitive displacement in the Service Cloud/contact center segment.",
+        "confidence": "high",
+        "evidence": "The AE explicitly flagged the secondhand report of competitive benchmarking as something worth prioritizing internally, and Deal Desk's internal vertical-wide displacement data corroborates that this is a recognized pattern, not just a one-off rumor.",
+        "source": ["email_thread_excerpt.md", "salesforce_marriott_internal_pricing_limits.csv"]
+      }
+    ]
+  },
+
+  "minimum_limits": {
+    "note": "Populated from salesforce_marriott_internal_pricing_limits.csv, a supplementary fictional Salesforce-internal Deal Desk document added on 2026-07-27 at the account executive's request. It was not part of the original five uploaded files and is not shared with Marriott.",
+    "pricing_positions_usd_annual_3yr_term": {
+      "opening": { "value": 1950000, "source": "salesforce_marriott_internal_pricing_limits.csv" },
+      "target": { "value": 1840000, "source": "salesforce_marriott_internal_pricing_limits.csv" },
+      "acceptable": { "value": 1750000, "source": "salesforce_marriott_internal_pricing_limits.csv" },
+      "minimum": { "value": 1650000, "source": "salesforce_marriott_internal_pricing_limits.csv", "note": "Below this figure, CRO approval is required under the Strategic account exception process." }
+    },
+    "term_length_adjustments": {
+      "single_year_term_price_uplift_pct": { "value": 4, "source": "salesforce_marriott_internal_pricing_limits.csv", "note": "Applied to each price tier above if Marriott signs a 1-year term instead of 3-year." },
+      "five_year_term_additional_discount_pct": { "value": 2, "source": "salesforce_marriott_internal_pricing_limits.csv" },
+      "preferred_term_length_months": { "value": 36, "source": "salesforce_marriott_internal_pricing_limits.csv" }
+    },
+    "seat_floor": {
+      "minimum_seat_floor": { "value": 3800, "source": "salesforce_marriott_internal_pricing_limits.csv", "note": "Below this (including Marriott's stated 3,600 target, per email_thread_excerpt.md), VP of Sales approval is required." },
+      "gap_to_marriotts_stated_target": { "value": 200, "unit": "seats", "note": "Marriott's stated confidently-committable seat count (3,600) is 200 seats below Salesforce's no-escalation floor (3,800). Both values are known; how the gap is closed is unresolved." }
+    },
+    "discount_limits": {
+      "max_discount_pct_without_escalation": { "value": 12, "source": "salesforce_marriott_internal_pricing_limits.csv" },
+      "vp_approval_required_pct_range": { "value": [12, 18], "source": "salesforce_marriott_internal_pricing_limits.csv" },
+      "cro_approval_required_above_pct": { "value": 18, "source": "salesforce_marriott_internal_pricing_limits.csv" }
+    },
+    "ai_einstein_limits": {
+      "list_price_usd_per_seat_monthly": { "value": 15, "source": "salesforce_marriott_internal_pricing_limits.csv" },
+      "no_charge_bundling_limit_seats": { "value": 2600, "source": "salesforce_marriott_internal_pricing_limits.csv", "note": "Contingent on a signed 3-year term; scope is Service Cloud/contact-center seats. Full-org bundling requires VP approval." }
+    },
+    "sandbox_limits": {
+      "incremental_internal_cost_usd_annual_per_sandbox": { "value": 8000, "source": "salesforce_marriott_internal_pricing_limits.csv" },
+      "no_charge_concession_limit_units": { "value": 2, "source": "salesforce_marriott_internal_pricing_limits.csv", "note": "Contingent on a minimum 2-year term." }
+    },
+    "estimated_customer_budget_ceiling_usd_annual": {
+      "value": 1700000,
+      "confidence": "low",
+      "source": "salesforce_marriott_internal_pricing_limits.csv",
+      "note": "This is Salesforce Deal Desk's own internal estimate based on account tier and Hospitality-vertical benchmarks. It is NOT confirmed by Marriott and must not be treated as a fact about the customer -- it is a Salesforce-side guess, labeled accordingly."
+    },
+    "walkaway_guidance": {
+      "value": "Do not offer full-org AI/Einstein bundling or a seat floor below 3,800 without VP sign-off; do not cross the $1,650,000/year floor without CRO approval.",
+      "source": "salesforce_marriott_internal_pricing_limits.csv"
+    }
+  },
+
+  "marriott_interests": {
+    "confirmed": [
+      {
+        "statement": "Corporate is requiring every department to justify renewals over $1M this budget season.",
+        "source": "discovery_call_notes.md"
+      }
+    ],
+    "inferred": [
+      {
+        "statement": "Avoid paying for underutilized seats; achieve cost efficiency relative to actual usage.",
+        "confidence": "high",
+        "evidence": "Regional utilization is uneven (EMEA 58%, APAC 49% vs. NA 91%), and Rachel is explicitly pushing for a true-up/true-down model instead of a flat 4,200-seat block.",
+        "source": ["usage_outcomes_report.md", "discovery_call_notes.md"]
+      },
+      {
+        "statement": "Relieve internal development team constraints via more sandbox capacity.",
+        "confidence": "high",
+        "evidence": "Rachel directly said their dev team has been 'fighting over sandbox slots' and the follow-up email formalizes a request for two additional free sandboxes.",
+        "source": ["discovery_call_notes.md", "email_thread_excerpt.md"]
+      },
+      {
+        "statement": "Preserve negotiating leverage/optionality by keeping a competitive evaluation active for the contact center piece.",
+        "confidence": "medium",
+        "evidence": "Devon mentioned evaluating an unnamed competitor specifically for the contact center, without volunteering full detail; Salesforce's AE treats this as a signal worth investigating rather than a confirmed threat.",
+        "source": ["discovery_call_notes.md", "email_thread_excerpt.md"]
+      },
+      {
+        "statement": "Simplify internal budget approval by avoiding a separate AI/Einstein add-on line item.",
+        "confidence": "medium",
+        "evidence": "Devon framed AI/Einstein inclusion as a potential differentiator tied to pricing structure, and the follow-up email formalizes this as a base-price inclusion request.",
+        "source": ["discovery_call_notes.md", "email_thread_excerpt.md"]
+      },
+      {
+        "statement": "Marriott's actual internal budget ceiling for this renewal may be somewhat above its stated $1.5-1.6M/year opening ask.",
+        "confidence": "low",
+        "evidence": "This is Salesforce Deal Desk's own unconfirmed estimate ($1,700,000/year) based on account tier and vertical benchmarks -- not information from Marriott. It is included here only as a labeled, low-confidence internal estimate, not a fact about Marriott's real budget.",
+        "source": "salesforce_marriott_internal_pricing_limits.csv"
+      }
+    ]
+  },
+
+  "salesforce_interests": {
+    "confirmed": [],
+    "inferred": [
+      {
+        "statement": "Preserve existing ACV and resist a seat-count renegotiation that erodes contract value.",
+        "confidence": "high",
+        "evidence": "Seats are the largest driver of contract value; Marriott's true-up ask (targeting ~3,600 vs. 4,200) directly threatens the current revenue level.",
+        "source": ["current_contract_terms.csv", "email_thread_excerpt.md"]
+      },
+      {
+        "statement": "Lock in a multi-year term for revenue predictability.",
+        "confidence": "medium",
+        "evidence": "The AE responded constructively to the 3-year term proposal in his email rather than resisting it.",
+        "source": "email_thread_excerpt.md"
+      },
+      {
+        "statement": "Treat AI/Einstein as a future expansion-revenue opportunity rather than a free bundled feature.",
+        "confidence": "medium",
+        "evidence": "The AE routed the AI-bundling question to deal desk rather than declining outright, consistent with protecting it as a paid upsell path.",
+        "source": "email_thread_excerpt.md"
+      },
+      {
+        "statement": "Prevent loss of the Service Cloud/contact center business to a competitor.",
+        "confidence": "high",
+        "evidence": "The AE explicitly flagged the secondhand competitive-benchmarking report as important to validate and prioritize.",
+        "source": "email_thread_excerpt.md"
+      }
+    ]
+  },
+
+  "alternatives": {
+    "marriott_alternative_contact_center": {
+      "confirmed": {
+        "statement": "Marriott is evaluating an unnamed competitor's service platform specifically for the contact center/Service Cloud piece, not the whole suite.",
+        "source": ["discovery_call_notes.md", "email_thread_excerpt.md (AE references this secondhand)"]
+      }
+    },
+    "marriott_alternative_sales_cloud": "No data available. No source mentions an alternative under evaluation for the Sales Cloud/group-bookings piece.",
+    "salesforce_alternative": "No data available. None of the six source files (including salesforce_marriott_internal_pricing_limits.csv) address what Salesforce's fallback position or alternative accounts/options would be if Marriott does not renew. The pricing file covers Deal Desk limits and vertical-wide competitive context, not Salesforce's own BATNA -- this gap remains, and no value has been invented to fill it."
+  },
+
+  "leverage": {
+    "marriott_leverage": [
+      {
+        "statement": "An active competitive evaluation is underway for the contact center piece.",
+        "status": "confirmed",
+        "source": "discovery_call_notes.md"
+      },
+      {
+        "statement": "Budget pressure narrative (corporate scrutiny of renewals over $1M) is being used to justify pushing for lower/more flexible pricing.",
+        "status": "confirmed",
+        "source": "discovery_call_notes.md"
+      },
+      {
+        "statement": "Willingness to commit to a multi-year term functions as a bargaining chip in exchange for price concessions.",
+        "status": "inferred",
+        "confidence": "high",
+        "evidence": "Rachel explicitly linked multi-year approval ease to 'if the price is right.'",
+        "source": "discovery_call_notes.md"
+      }
+    ],
+    "salesforce_leverage": [
+      {
+        "statement": "Measurable positive outcomes support renewal value: case resolution time down 22% YoY, sales cycle length down 9% YoY.",
+        "status": "confirmed",
+        "source": "usage_outcomes_report.md"
+      },
+      {
+        "statement": "The North America contact center team is an internal advocate willing to serve as a case study reference.",
+        "status": "confirmed",
+        "source": "usage_outcomes_report.md"
+      },
+      {
+        "statement": "Switching costs associated with migrating 4,200 seats and embedded Sales Cloud + Service Cloud workflows.",
+        "status": "inferred",
+        "confidence": "medium",
+        "evidence": "Scale of deployment (4,200 seats, Strategic tier, multi-year embedded usage) implies migration cost, though no source directly quantifies switching cost.",
+        "source": ["current_contract_terms.csv", "crm_account_overview.csv"]
+      },
+      {
+        "statement": "Salesforce is proactively aware of the competitive pattern in this vertical (2 displacements fiscal-year-to-date) and has already directed prioritization toward contact-center retention terms, rather than being caught flat-footed.",
+        "status": "confirmed",
+        "source": "salesforce_marriott_internal_pricing_limits.csv"
+      }
+    ]
+  },
+
+  "concessions": {
+    "note": "Split between concessions confirmed by Salesforce's internal Deal Desk policy (salesforce_marriott_internal_pricing_limits.csv) and concessions that remain speculative negotiation-prep inferences not stated in any source.",
+    "confirmed_available_concessions": [
+      {
+        "statement": "Up to 2 additional full sandboxes at no charge, contingent on a minimum 2-year term.",
+        "source": "salesforce_marriott_internal_pricing_limits.csv",
+        "note": "Matches Marriott's request for 'two additional full sandboxes at no incremental cost' (email_thread_excerpt.md)."
+      },
+      {
+        "statement": "AI/Einstein features bundled at no incremental charge for up to 2,600 Service Cloud (contact-center) seats, contingent on a signed 3-year term. Bundling beyond this limit or org-wide requires VP approval.",
+        "source": "salesforce_marriott_internal_pricing_limits.csv",
+        "note": "Partially matches Marriott's request to bundle AI/Einstein 'at least for the contact center team' (email_thread_excerpt.md); full-org bundling is not pre-approved."
+      },
+      {
+        "statement": "Price flexibility down to $1,650,000/year on a 3-year term without escalation beyond Deal Desk; below that requires CRO approval.",
+        "source": "salesforce_marriott_internal_pricing_limits.csv",
+        "note": "Still roughly $50,000-$150,000/year above the top of Marriott's stated $1.5-1.6M target range (email_thread_excerpt.md) -- a real, currently unclosed gap between the two sides' positions."
+      },
+      {
+        "statement": "A 5-year term (longer than Marriott's proposed 3-year) would qualify for an additional 2% discount off the target/acceptable price tiers.",
+        "source": "salesforce_marriott_internal_pricing_limits.csv",
+        "note": "Not something Marriott has asked for; included as an available-but-unsolicited lever, not a recommendation."
+      }
+    ],
+    "inferred_possible_concessions": [
+      {
+        "statement": "Offer a modified banded seat commitment (e.g., a seat floor with tiered true-up) rather than full usage-based flexibility, using the 3,800-seat internal floor as the anchor.",
+        "confidence": "low",
+        "evidence": "The internal seat floor (3,800, per salesforce_marriott_internal_pricing_limits.csv) and Marriott's stated target (3,600, per email_thread_excerpt.md) are both known, but no source describes how a banded/tiered structure between them would actually be offered.",
+        "source": ["salesforce_marriott_internal_pricing_limits.csv", "email_thread_excerpt.md"]
+      }
+    ]
+  },
+
+  "likely_objections": [
+    {
+      "statement": "Marriott may object if the effective annual price does not move meaningfully from ~$1.78-1.85M toward its $1.5-1.6M target.",
+      "confidence": "high",
+      "evidence": "Explicit target price range stated in the renewal email.",
+      "source": "email_thread_excerpt.md"
+    },
+    {
+      "statement": "Marriott may object to losing AI/Einstein as a free bundle if Salesforce insists on add-on pricing.",
+      "confidence": "medium",
+      "evidence": "Devon raised this as a potential differentiator in the discovery call, and it was formalized as a specific ask in the follow-up email.",
+      "source": ["discovery_call_notes.md", "email_thread_excerpt.md"]
+    },
+    {
+      "statement": "Salesforce's deal desk may object to reducing the committed seat floor from 4,200 to ~3,600, since it directly cuts committed revenue.",
+      "confidence": "medium",
+      "evidence": "The AE explicitly flagged needing deal desk sign-off specifically on the seat question.",
+      "source": "email_thread_excerpt.md"
+    },
+    {
+      "statement": "Salesforce may push back on the compressed December 15, 2026 deadline relative to the original January 31, 2027 contract end date, citing less time to negotiate and internally approve terms.",
+      "confidence": "medium",
+      "evidence": "The two dates conflict (see conflicts log C-3); no direct Salesforce reaction to the new deadline is captured in the available sources.",
+      "source": ["email_thread_excerpt.md", "crm_account_overview.csv"]
+    }
+  ],
+
+  "unresolved_questions": [
+    {
+      "question": "Who at Marriott has final sign-off authority for the renewal?",
+      "note": "Only referenced generically as 'our CFO's office'; no individual named.",
+      "source": "discovery_call_notes.md"
+    },
+    {
+      "question": "Which competitor is Marriott evaluating for the contact center piece?",
+      "note": "Never named in either the discovery call or the email thread.",
+      "source": ["discovery_call_notes.md", "email_thread_excerpt.md"]
+    },
+    {
+      "question": "What is the actual root cause of the APAC utilization gap?",
+      "note": "Explicitly described in the source itself as unvalidated theories (incomplete rollout vs. localization gap).",
+      "source": "usage_outcomes_report.md"
+    },
+    {
+      "question": "Can AI/Einstein features be priced flexibly for this account?",
+      "status": "resolved",
+      "note": "Originally an open internal follow-up after the discovery call (discovery_call_notes.md). RESOLVED by salesforce_marriott_internal_pricing_limits.csv: yes, up to 2,600 Service Cloud (contact-center) seats can be bundled at no charge with a signed 3-year term; full-org bundling requires VP approval.",
+      "source": ["discovery_call_notes.md", "salesforce_marriott_internal_pricing_limits.csv"]
+    },
+    {
+      "question": "What does the detailed usage-by-region data (beyond the Q1 2026 summary) show?",
+      "note": "Listed as a pending follow-up item for the CS team.",
+      "source": "discovery_call_notes.md"
+    },
+    {
+      "question": "How should the conflicting renewal deadlines (2027-01-31 contract end date vs. 2026-12-15 legal deadline) be reconciled?",
+      "note": "See conflicts log (C-3). Partially informed by salesforce_marriott_internal_pricing_limits.csv, which notes the 2026-12-15 date falls within Salesforce's FY2027 Q4 (2026-11-01 to 2027-01-31) and creates no internal fiscal conflict on Salesforce's side -- but this does not resolve why the underlying contract record still shows 2027-01-31.",
+      "source": ["crm_account_overview.csv", "current_contract_terms.csv", "email_thread_excerpt.md", "salesforce_marriott_internal_pricing_limits.csv"]
+    },
+    {
+      "question": "Which figure correctly represents the current annual contract value: $1,850,000 (CRM) or $1,780,000 (contract terms)?",
+      "note": "See conflicts log (C-2).",
+      "source": ["crm_account_overview.csv", "current_contract_terms.csv"]
+    },
+    {
+      "question": "How serious/advanced is the competitor evaluation, really?",
+      "note": "The Salesforce AE states this was heard secondhand, not confirmed directly by Marriott, and flags it as something to validate.",
+      "source": "email_thread_excerpt.md"
+    },
+    {
+      "question": "What is Rachel Kim's correct title: VP of Procurement or Director of Procurement?",
+      "note": "See conflicts log (C-1).",
+      "source": ["crm_account_overview.csv", "discovery_call_notes.md"]
+    }
+  ],
+
+  "source_references": [
+    {
+      "file": "crm_account_overview.csv",
+      "description": "Fictional CRM record with core account metadata: account owner, contacts, contract dates, current ACV, seat count, product line, account tier, and last QBR date."
+    },
+    {
+      "file": "current_contract_terms.csv",
+      "description": "Fictional contract line-item detail: contract ID, effective date, term length, list/negotiated pricing, discount, seats, support tier, payment terms, auto-renewal clause, sandboxes, and data storage allotment."
+    },
+    {
+      "file": "discovery_call_notes.md",
+      "description": "Fictional raw notes from a March 3, 2026 renewal-prep call between the Salesforce AE and Marriott's Rachel Kim and Devon Osei, including budget pressure, seat model pushback, sandbox constraints, competitor mention, and open follow-ups."
+    },
+    {
+      "file": "usage_outcomes_report.md",
+      "description": "Fictional Q1 2026 Customer Success report on adoption (weekly active users, license utilization by region) and outcomes (case resolution time, sales cycle length, support ticket SLA)."
+    },
+    {
+      "file": "email_thread_excerpt.md",
+      "description": "Fictional two-message email exchange (May 12 and May 14, 2026) between Rachel Kim and Jorge Alvarez formalizing Marriott's five renewal asks and the AE's initial response."
+    },
+    {
+      "file": "salesforce_marriott_internal_pricing_limits.csv",
+      "description": "Fictional Salesforce-internal Deal Desk memo (dated 2026-05-20, authored after the AE's 2026-05-14 email committing to check with Deal Desk). Not part of the original five uploaded files -- authored on 2026-07-27 at the account executive's explicit request to fill sign-off gaps. Contains opening/target/acceptable/minimum annual pricing positions, seat floor, discount escalation thresholds, AI/Einstein and sandbox concession limits, term-length pricing adjustments, an internal (unconfirmed) estimate of Marriott's budget ceiling, and competitive-context notes. Internal to Salesforce; not shared with Marriott.",
+      "added": "2026-07-27",
+      "added_reason": "Requested by the user to close gaps identified against the GRASP brief's sign-off checklist (minimum_limits and pricing-position fields had no supporting data in the original five files)."
+    }
+  ],
+
+  "conflicts": [
+    {
+      "id": "C-1",
+      "topic": "Rachel Kim's job title",
+      "conflicting_values": [
+        { "value": "VP of Procurement", "source": "crm_account_overview.csv (field: primary_contact_title)" },
+        { "value": "Director of Procurement (reports up to the VP of Procurement)", "source": "discovery_call_notes.md (Rachel's own verbal correction to Devon on the call)" }
+      ],
+      "resolution_status": "unresolved",
+      "note": "Not silently resolved. The discovery-call correction came directly from Rachel Kim herself and is more recent, but the packet retains both values rather than overwriting the CRM record."
+    },
+    {
+      "id": "C-2",
+      "topic": "Current annual contract value",
+      "conflicting_values": [
+        { "value": 1850000, "unit": "USD/year", "source": "crm_account_overview.csv (field: current_annual_contract_value_usd)" },
+        { "value": 1780000, "unit": "USD/year", "source": "current_contract_terms.csv (field: annual_negotiated_price_usd)" }
+      ],
+      "resolution_status": "unresolved",
+      "note": "The contract-terms figure is internally consistent with list price minus discount (1,920,000 x (1 - 0.073) ≈ 1,779,840), but this does not resolve why the CRM record shows a different figure. Both retained."
+    },
+    {
+      "id": "C-3",
+      "topic": "Renewal / finalization deadline",
+      "conflicting_values": [
+        { "value": "2027-01-31", "source": "crm_account_overview.csv (renewal_target_date) and current_contract_terms.csv (implied contract end date from a 36-month term starting 2024-02-01)" },
+        { "value": "2026-12-15", "source": "email_thread_excerpt.md (Rachel Kim: 'Legal now wants everything finalized by December 15, 2026... because of a corporate budget cycle change')" }
+      ],
+      "resolution_status": "unresolved",
+      "note": "May represent a genuine update (deadline moved) rather than a data error, but no source confirms the contract record was ever formally updated to reflect the new date. Both retained."
+    }
+  ]
+}
+
+</script>
+<script src="negotiation_briefing_logic.js"></script>
+<script>
+(function () {
+  var packet = JSON.parse(document.getElementById('packet-data').textContent);
+  var disclaimerBanner = document.getElementById('disclaimer-banner');
+  disclaimerBanner.innerHTML = '<strong>Classroom-use disclaimer</strong>' + escapeHtml(packet.classroom_use_disclaimer.statement);
+
+  var focusSelect = document.getElementById('focus');
+  BriefingLogic.VALID_FOCUS.forEach(function (f) {
+    var opt = document.createElement('option');
+    opt.value = f;
+    opt.textContent = BriefingLogic.FOCUS_LABELS[f];
+    if (f === 'general') opt.selected = true;
+    focusSelect.appendChild(opt);
+  });
+
+  var stakeholderList = document.getElementById('stakeholderList');
+  (packet.stakeholders.confirmed || []).forEach(function (s) {
+    if (!s.name) return;
+    var opt = document.createElement('option');
+    opt.value = s.name;
+    stakeholderList.appendChild(opt);
+  });
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function fmtSource(src) { return BriefingLogic.fmtSource(src); }
+
+  function confidenceBadge(level) {
+    if (!level) return '';
+    return '<span class="badge badge-' + escapeHtml(level) + '">' + escapeHtml(level) + '</span>';
+  }
+  function statusBadge(status) {
+    if (!status) return '';
+    var cls = status === 'confirmed' ? 'badge-confirmed' : (status === 'resolved' ? 'badge-resolved' : 'badge-inferred');
+    return '<span class="badge ' + cls + '">' + escapeHtml(status) + '</span>';
+  }
+
+  function renderItemRow(i, textKeys) {
+    var text = null;
+    for (var k = 0; k < textKeys.length; k++) { if (i[textKeys[k]] !== undefined) { text = i[textKeys[k]]; break; } }
+    if (text === null) text = JSON.stringify(i);
+    var badges = confidenceBadge(i.confidence) + statusBadge(i.status);
+    var evidence = i.evidence ? '<div class="evidence">' + escapeHtml(i.evidence) + '</div>' : '';
+    return '<div class="item-row">' + escapeHtml(text) + badges + evidence +
+      '<span class="src">Source: ' + escapeHtml(fmtSource(i.source)) + '</span></div>';
+  }
+
+  function renderSection(sec) {
+    var html = '<div class="card"><div class="section-title">' + escapeHtml(sec.title) + '</div>';
+
+    if (sec.type === 'stakeholders') {
+      if (sec.matched.length === 0) {
+        html += '<p class="empty-note">No stakeholder in the packet matched &ldquo;' + escapeHtml(sec.queried) +
+          '&rdquo; by name. Proceeding with a general briefing — verify who is actually attending before the meeting.</p>';
+      } else {
+        sec.matched.forEach(function (s) {
+          var titleStr;
+          if (s.title && typeof s.title === 'object') {
+            titleStr = s.title.values.map(function (v) { return v.value; }).join(' / ') +
+              ' <span class="badge badge-medium">title conflicting</span>';
+          } else {
+            titleStr = escapeHtml(s.title);
+          }
+          html += '<div class="stakeholder-card"><div class="stakeholder-name">' + escapeHtml(s.name) + ' &middot; ' + escapeHtml(s.organization) + '</div>' +
+            '<div class="stakeholder-role">' + titleStr + '</div>' +
+            '<div class="stakeholder-role">' + escapeHtml(s.role_in_negotiation || '') + '</div></div>';
+        });
+      }
+    } else if (sec.type === 'fact-list') {
+      if (sec.items.length === 0) { html += '<p class="empty-note">No fields match the selected focus.</p>'; }
+      sec.items.forEach(function (i) {
+        html += '<div class="item-row"><strong>' + escapeHtml(i.label.replace(/_/g, ' ')) + ':</strong> ' + escapeHtml(String(i.value)) +
+          (i.note ? '<div class="evidence">' + escapeHtml(i.note) + '</div>' : '') +
+          '<span class="src">Source: ' + escapeHtml(fmtSource(i.source)) + '</span></div>';
+      });
+    } else if (sec.type === 'statement-list') {
+      if (sec.items.length === 0) { html += '<p class="empty-note">No items match the selected focus.</p>'; }
+      sec.items.forEach(function (i) { html += renderItemRow(i, sec.textKeys); });
+    } else if (sec.type === 'confirmed-inferred') {
+      if (sec.confirmed.length === 0 && sec.inferred.length === 0) {
+        html += '<p class="empty-note">No items match the selected focus.</p>';
+      }
+      if (sec.confirmed.length) {
+        html += '<div class="subhead">Confirmed</div>';
+        sec.confirmed.forEach(function (i) {
+          var stmt = i.statement || i.value || i.name || JSON.stringify(i);
+          html += '<div class="item-row">' + escapeHtml(stmt) + '<span class="src">Source: ' + escapeHtml(fmtSource(i.source)) + '</span></div>';
+        });
+      }
+      if (sec.inferred.length) {
+        html += '<div class="subhead">Inferred (not confirmed)</div>';
+        sec.inferred.forEach(function (i) {
+          html += '<div class="item-row">' + escapeHtml(i.statement) + confidenceBadge(i.confidence) +
+            '<div class="evidence">' + escapeHtml(i.evidence) + '</div>' +
+            '<span class="src">Source: ' + escapeHtml(fmtSource(i.source)) + '</span></div>';
+        });
+      }
+    } else if (sec.type === 'json-blocks') {
+      if (sec.blocks.length === 0) { html += '<p class="empty-note">No limits sub-sections match the selected focus.</p>'; }
+      sec.blocks.forEach(function (b) {
+        html += '<div class="subhead">' + escapeHtml(b.key.replace(/_/g, ' ')) + '</div>' +
+          '<pre class="json-block">' + escapeHtml(JSON.stringify(b.value, null, 2)) + '</pre>';
+      });
+    } else if (sec.type === 'conflicts') {
+      if (sec.relevant.length === 0) {
+        html += '<p class="empty-note">No conflicts directly tied to this focus area.</p>';
+      } else {
+        sec.relevant.forEach(function (c) {
+          html += '<div class="conflict-box"><div class="topic">' + escapeHtml(c.id) + ' — ' + escapeHtml(c.topic) + '</div><ul>';
+          c.conflicting_values.forEach(function (cv) {
+            html += '<li>' + escapeHtml(String(cv.value)) + ' <span class="src">(' + escapeHtml(cv.source) + ')</span></li>';
+          });
+          html += '</ul><div class="status">Status: ' + escapeHtml(c.resolution_status) + '. ' + escapeHtml(c.note || '') + '</div></div>';
+        });
+      }
+      html += '<div class="conflict-pointer">Full conflict log has ' + sec.total + ' entries: ' + sec.allIds.join(', ') +
+        '. Shown above for this focus: ' + (sec.shownIds.join(', ') || 'none') + '. Review the full packet before treating any figure as settled.</div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  function renderAccountSnapshot(snap) {
+    var html = '<div class="card"><div class="section-title">' + escapeHtml(snap.title) + '</div>';
+    snap.lines.forEach(function (l) { html += '<div class="item-row">' + escapeHtml(l) + '</div>'; });
+    html += '</div>';
+    return html;
+  }
+
+  function renderSourceList(refs) {
+    var html = '<div class="card"><div class="section-title">Full source list</div><ul class="source-list">';
+    refs.forEach(function (s) {
+      html += '<li><code>' + escapeHtml(s.file) + '</code> — ' + escapeHtml(s.description) + '</li>';
+    });
+    html += '</ul></div>';
+    return html;
+  }
+
+  var lastMarkdown = '';
+
+  function generate() {
+    var meetingWith = document.getElementById('meetingWith').value.trim() || 'Unspecified';
+    var focus = focusSelect.value;
+    var notes = document.getElementById('notes').value.trim();
+
+    var model = BriefingLogic.buildBriefingModel(packet, meetingWith, focus, notes);
+    lastMarkdown = BriefingLogic.renderMarkdown(model);
+
+    var out = document.getElementById('output');
+    var html = '<div class="card"><div class="meta-row">' +
+      '<span><strong>Meeting with:</strong> ' + escapeHtml(meetingWith) + '</span>' +
+      '<span>&middot;</span><span><strong>Focus:</strong> ' + escapeHtml(model.meta.focusLabel) + '</span>' +
+      (notes ? '<span>&middot;</span><span><strong>Notes:</strong> ' + escapeHtml(notes) + '</span>' : '') +
+      '</div></div>';
+    html += renderAccountSnapshot(model.accountSnapshot);
+    model.sections.forEach(function (sec) { html += renderSection(sec); });
+    html += renderSourceList(model.sourceReferences);
+    out.innerHTML = html;
+
+    document.getElementById('downloadBtn').disabled = false;
+    document.getElementById('copyBtn').disabled = false;
+    out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('generateBtn').addEventListener('click', generate);
+
+  document.getElementById('downloadBtn').addEventListener('click', function () {
+    var blob = new Blob([lastMarkdown], { type: 'text/markdown' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'negotiation_briefing.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    navigator.clipboard.writeText(lastMarkdown).then(function () {
+      var btn = document.getElementById('copyBtn');
+      var original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(function () { btn.textContent = original; }, 1500);
+    });
+  });
+
+  // Generate an initial general briefing on load so the page isn't empty.
+  generate();
+})();
+</script>
+</body>
+</html>
